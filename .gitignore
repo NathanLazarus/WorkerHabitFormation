@@ -1,0 +1,11 @@
+*.zip
+*.out
+*.aux
+Deprecated/
+.vscode/
+__pycache__/
+env/
+*.db
+*.Rhistory
+.Rproj.user
+.DS_Store
