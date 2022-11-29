@@ -49,3 +49,25 @@ def theoretical_ls(own_log_wage, log_wages, firm_id, beta): # Exploits logit pre
 def profits(wage, log_MRPL, firm_id, logit_center_vals, ols_coefs, poly_degree):
     # quantity_employed = np.searchsorted(ls_func, wage)
     return (exp(log_MRPL[firm_id]) - exp(wage)) * fitted_differentiable_ls_function(wage, logit_center_vals, ols_coefs, poly_degree)
+
+def construct_differentiable_ls_func(this_ls_func, n_approx_points, poly_degree, logit_center_vals):
+
+    approx_start = this_ls_func[int(floor(this_ls_func.shape[0] * 0.0005))]
+    approx_end = this_ls_func[int(ceil(this_ls_func.shape[0] * 0.99))]
+    approx_points = np.linspace(approx_start, approx_end, n_approx_points)
+
+    approx_points_ls_value = np.searchsorted(this_ls_func, approx_points) / this_ls_func.shape[0]
+
+
+    poly_entries = approx_points[:,None] ** np.arange(poly_degree + 1)
+
+    logit1 = 1 / (1 + np.exp(-1 * (approx_points[:,None] - logit_center_vals)))
+    logit2 = 1 / (1 + np.exp(-2 * (approx_points[:,None] - logit_center_vals)))
+    logit3 = 1 / (1 + np.exp(-3 * (approx_points[:,None] - logit_center_vals)))
+    logit4 = 1 / (1 + np.exp(-4 * (approx_points[:,None] - logit_center_vals)))
+    logit5 = 1 / (1 + np.exp(-5 * (approx_points[:,None] - logit_center_vals)))
+    approx_points_dictionary = np.hstack([poly_entries, logit1, logit2, logit3, logit4, logit5])
+
+    [ols_coefs, resids, rank, s] = np.linalg.lstsq(approx_points_dictionary, approx_points_ls_value, rcond=-1)
+
+    return ols_coefs
