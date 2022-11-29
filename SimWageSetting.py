@@ -9,11 +9,11 @@ n_firms = 20
 
 beta = 1
 
-# wages = SX.sym("wages", n_firms, 1)
+constant_MRP = 10
 
 markdown = - np.log(beta / (1 + beta))
 
-log_MRPL = np.linspace(9.6, 10.5, n_firms) + markdown
+log_MRPL = np.full(n_firms, constant_MRP)
 
 current_firm = np.repeat(np.arange(n_firms), n_workers / n_firms)
 
@@ -25,7 +25,7 @@ worker_epsilons = np.random.gumbel(loc=0, scale=1, size=n_workers * n_firms).res
 # This will be better in steady state (if there are no preference shocks over time), where conditional on number of workers employed their compensating diffs should be above a threshold...but confusing with n_firms epsilon values per worker
 # Could also study for a very small number of workers, keeping track of each worker's previous employer. This is like the stylized IO branding model where 2 firms were competing over 1 consumer
 
-log_wages = log_MRPL - markdown
+log_wages = np.full(n_firms, 9.28568) # log_MRPL - markdown - 0.02
 
 habit_utilities = np.zeros_like(worker_epsilons)
 habit_utilities[np.arange(habit_utilities.shape[0]), current_firm] = 2
@@ -37,7 +37,6 @@ ls_func3 = residual_labor_supply(3, worker_epsilons, log_wages, beta)
 ls_func3_habit = residual_labor_supply_with_habits(3, worker_epsilons, log_wages, habit_utilities, beta)
 
 
-# print(np.mean(indirect_utilities, axis=0))
 
 # Constructing a differentiable LS function
 
@@ -143,20 +142,23 @@ print(np.searchsorted(this_ls_func, solution['x']) * (exp(log_MRPL[3]) - exp(sol
 
 
 
-def theoretical_profits(log_wage, other_log_wages, log_MRPL, firm_id, beta):
-    return theoretical_ls(log_wage, other_log_wages, firm_id, beta) * (exp(log_MRPL[firm_id]) - exp(log_wage))
+# def theoretical_profits(log_wage, other_log_wages, log_MRPL, firm_id, beta):
+#     return theoretical_ls(log_wage, other_log_wages, firm_id, beta) * (exp(log_MRPL[firm_id]) - exp(log_wage))
 
-print(theoretical_ls(solution['x'], log_wages, 3, beta))
+# print(theoretical_ls(solution['x'], log_wages, 3, beta))
 
-print(f"theoretical profits solution: {theoretical_profits(solution['x'], log_wages, log_MRPL, 3, beta)}")
-print(f"theoretical profits myguess: {theoretical_profits(myguess, log_wages, log_MRPL, 3, beta)}")
+# print(f"theoretical profits solution: {theoretical_profits(solution['x'], log_wages, log_MRPL, 3, beta)}")
+# print(f"theoretical profits myguess: {theoretical_profits(myguess, log_wages, log_MRPL, 3, beta)}")
 
-for i in np.linspace(9.7235, 9.7245, 30):
-    print(f"")
-    print(f"{i = }, {theoretical_profits(i, log_wages, log_MRPL, 3, beta) = }")
+# for i in np.linspace(9.7235, 9.7245, 30):
+#     print(f"")
+#     print(f"{i = }, {theoretical_profits(i, log_wages, log_MRPL, 3, beta) = }")
 
 print(f"{solution['x'] = }")
+print(log_wages)
 
 # Theoretical (exact) solution: 9.72423 (different from "myguess", based on the markdown, because of oligopsony: the firm internalizing its effect on the denominator)
 # Interpolated solution: 9.72348
 
+# Monopolistic competition would give a markdown of 50% here, so MRPL - wage = log(2)
+# The symmetric oligopsony instead gives a markdown of 51.05%, so MRPL - wage = log(2.043)
