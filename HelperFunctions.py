@@ -24,18 +24,23 @@ def fitted_differentiable_ls_function(wage, logit_center_vals, ols_coefs, poly_d
     return vertcat(poly_entries, logit1, logit2, logit3, logit4, logit5).T @ DM(ols_coefs) # 2.79566189e+00 + -8.56235500e-01 * wage + 7.85001289e-02 * wage ** 2 + -2.01661620e-03 * wage ** 3 # DM(regressors).T @ DM(ols_coefs)
 
 
+def get_matches(worker_epsilons, log_wages, beta):
+    indirect_utility = beta * log_wages + worker_epsilons
+    matches = np.argmax(indirect_utility, axis=1)
+    return matches
+
 def residual_labor_supply(firm_id, worker_epsilons, other_log_wages, beta):
     log_wages_paying_0 = other_log_wages.copy()
     log_wages_paying_0[firm_id] = 0
     indirect_utility_firm_pays_0 = beta * log_wages_paying_0 + worker_epsilons
-    compensating_diff_to_work_at_firm = np.amax(indirect_utility_firm_pays_0, axis=1) - indirect_utility_firm_pays_0[:, firm_id]
+    compensating_diff_to_work_at_firm = (np.amax(indirect_utility_firm_pays_0, axis=1) - indirect_utility_firm_pays_0[:, firm_id]) / beta
     return np.sort(compensating_diff_to_work_at_firm)
 
 def residual_labor_supply_with_habits(firm_id, worker_epsilons, other_log_wages, habit_utilities, beta):
     log_wages_paying_0 = other_log_wages.copy()
     log_wages_paying_0[firm_id] = 0
     indirect_utility_firm_pays_0 = beta * log_wages_paying_0 + worker_epsilons + habit_utilities
-    compensating_diff_to_work_at_firm = np.amax(indirect_utility_firm_pays_0, axis=1) - indirect_utility_firm_pays_0[:, firm_id]
+    compensating_diff_to_work_at_firm = (np.amax(indirect_utility_firm_pays_0, axis=1) - indirect_utility_firm_pays_0[:, firm_id]) / beta
     return np.sort(compensating_diff_to_work_at_firm)
 
 
